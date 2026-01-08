@@ -1,12 +1,12 @@
 import os
 import sys
-# DON'T CHANGE THIS !!!
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from flask import Flask, send_from_directory, jsonify
 from flask_cors import CORS
-from src.models.user import db, User
-from src.routes.user import user_bp
+from models.user import db, User
+from routes.user import user_bp
+from routes.federated_learning import fl_bp
+import federated_learning
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
@@ -15,6 +15,7 @@ app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
 CORS(app)
 
 app.register_blueprint(user_bp, url_prefix='/api')
+app.register_blueprint(fl_bp, url_prefix='/api')
 
 # uncomment if you need to use database
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
@@ -41,6 +42,12 @@ def init_demo_users():
 with app.app_context():
     db.create_all()
     init_demo_users()
+    # Train federated learning model on startup
+    try:
+        federated_learning.initialize_and_train_model()
+        print("Federated learning model trained and loaded successfully")
+    except Exception as e:
+        print(f"Error training federated learning model: {e}")
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')

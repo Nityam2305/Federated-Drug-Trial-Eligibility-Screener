@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
 import { useAuth } from '../contexts/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -16,32 +17,96 @@ import {
 } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
 
-const networkData = [
-  { month: 'Jan', models: 12, accuracy: 85 },
-  { month: 'Feb', models: 18, accuracy: 87 },
-  { month: 'Mar', models: 25, accuracy: 89 },
-  { month: 'Apr', models: 32, accuracy: 91 },
-  { month: 'May', models: 38, accuracy: 93 },
-  { month: 'Jun', models: 45, accuracy: 94 },
-]
-
-const trialData = [
-  { drug: 'Oncology-A', trials: 15, success: 78 },
-  { drug: 'Cardio-B', trials: 12, success: 85 },
-  { drug: 'Neuro-C', trials: 8, success: 72 },
-  { drug: 'Immuno-D', trials: 20, success: 88 },
-]
-
-const hospitalData = [
-  { name: 'Mayo Clinic', value: 25, color: '#3B82F6' },
-  { name: 'Johns Hopkins', value: 22, color: '#10B981' },
-  { name: 'Cleveland Clinic', value: 18, color: '#F59E0B' },
-  { name: 'Mass General', value: 15, color: '#EF4444' },
-  { name: 'Others', value: 20, color: '#8B5CF6' },
-]
-
 export default function Dashboard() {
   const { user } = useAuth()
+  const [trialData, setTrialData] = useState([])
+  const [hospitalData, setHospitalData] = useState([])
+  const [networkData, setNetworkData] = useState([
+    { month: 'Jan', models: 12, accuracy: 85 },
+    { month: 'Feb', models: 18, accuracy: 87 },
+    { month: 'Mar', models: 25, accuracy: 89 },
+    { month: 'Apr', models: 32, accuracy: 91 },
+    { month: 'May', models: 38, accuracy: 93 },
+    { month: 'Jun', models: 45, accuracy: 94 },
+  ])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchDashboardData()
+  }, [])
+
+  const fetchDashboardData = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/patients')
+      const patients = response.data.patients
+      
+      // Compute drug trial data
+      const drugStats = computeDrugStatistics(patients)
+      setTrialData(drugStats)
+      
+      // Compute hospital distribution
+      const hospitalStats = computeHospitalStatistics(patients)
+      setHospitalData(hospitalStats)
+      
+      setLoading(false)
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error)
+      setLoading(false)
+    }
+  }
+
+  const computeDrugStatistics = (patients) => {
+    const drugMap = {}
+    
+    patients.forEach(patient => {
+      const drug = patient.drug
+      const disease = patient.disease
+      
+      if (!drugMap[drug]) {
+        drugMap[drug] = {
+          drug: `${drug} (${disease})`,
+          trials: 0,
+          success: 0
+        }
+      }
+      
+      drugMap[drug].trials++
+      if (patient.drug_worked) {
+        drugMap[drug].success++
+      }
+    })
+    
+    return Object.values(drugMap).map(stat => ({
+      drug: stat.drug,
+      trials: stat.trials,
+      success: stat.trials > 0 ? Math.round((stat.success / stat.trials) * 100) : 0
+    })).slice(0, 6) // Limit to top 6 drugs
+  }
+
+  const computeHospitalStatistics = (patients) => {
+    const hospitalMap = {}
+    
+    patients.forEach(patient => {
+      const hospital = patient.hospital
+      if (!hospitalMap[hospital]) {
+        hospitalMap[hospital] = 0
+      }
+      hospitalMap[hospital]++
+    })
+    
+    const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899']
+    const total = patients.length
+    
+    return Object.entries(hospitalMap).map(([name, count], index) => ({
+      name,
+      value: Math.round((count / total) * 100),
+      color: colors[index % colors.length]
+    }))
+  }
+
+  if (loading) {
+    return <div className="p-6">Loading dashboard...</div>
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">

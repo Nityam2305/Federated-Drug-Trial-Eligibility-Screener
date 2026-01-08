@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -101,36 +102,112 @@ const networkInsights = [
 ]
 
 export default function Patients() {
-  const [patients, setPatients] = useState(mockPatients)
+  const [patients, setPatients] = useState([])
+  const [networkInsights, setNetworkInsights] = useState([])
+  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCondition, setSelectedCondition] = useState('')
-  const [selectedStatus, setSelectedStatus] = useState('')
+  const [selectedHospital, setSelectedHospital] = useState('all')
+
+  useEffect(() => {
+    fetchPatients()
+  }, [])
+
+  const fetchPatients = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/patients')
+      const patientData = response.data.patients
+      
+      // Transform data to match component expectations
+      const transformedPatients = patientData.slice(0, 10).map((patient, index) => ({
+        id: patient.patient_id || `P${index + 1}`,
+        age: patient.age,
+        gender: patient.gender || 'Unknown',
+        condition: patient.disease,
+        trialDrug: patient.drug,
+        enrollmentDate: patient.diagnosis_date || '2024-01-01',
+        status: patient.eligible ? 'Eligible' : 'Not Eligible',
+        response: patient.drug_worked ? 'Positive' : 'Negative',
+        lastVisit: patient.diagnosis_date || '2024-07-01',
+        hospital: patient.hospital
+      }))
+      
+      setPatients(transformedPatients)
+      
+      // Generate network insights from data
+      const insights = generateNetworkInsights(patientData)
+      setNetworkInsights(insights)
+      
+      setLoading(false)
+    } catch (error) {
+      console.error('Error fetching patients:', error)
+      setLoading(false)
+    }
+  }
+
+  const generateNetworkInsights = (patientData) => {
+    const drugGroups = {}
+    
+    patientData.forEach(patient => {
+      const drug = patient.drug
+      if (!drugGroups[drug]) {
+        drugGroups[drug] = {
+          drug,
+          condition: patient.disease,
+          networkPatients: 0,
+          eligibleCount: 0,
+          successCount: 0,
+          ages: [],
+          genders: { male: 0, female: 0 }
+        }
+      }
+      
+      drugGroups[drug].networkPatients++
+      if (patient.eligible) drugGroups[drug].eligibleCount++
+      if (patient.drug_worked) drugGroups[drug].successCount++
+      drugGroups[drug].ages.push(patient.age)
+      
+      const gender = patient.gender?.toLowerCase()
+      if (gender === 'male') drugGroups[drug].genders.male++
+      else if (gender === 'female') drugGroups[drug].genders.female++
+    })
+    
+    return Object.values(drugGroups).map(group => ({
+      drug: group.drug,
+      condition: group.condition,
+      networkPatients: group.networkPatients,
+      eligibleFromHospital: group.eligibleCount,
+      successRate: group.networkPatients > 0 ? Math.round((group.successCount / group.networkPatients) * 100) : 0,
+      avgAge: group.ages.length > 0 ? Math.round(group.ages.reduce((a, b) => a + b, 0) / group.ages.length) : 0,
+      genderDistribution: {
+        male: group.genders.male,
+        female: group.genders.female
+      }
+    }))
+  }
 
   const filteredPatients = patients.filter(patient => {
     const matchesSearch = patient.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         patient.condition.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         patient.trialDrug.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCondition = !selectedCondition || patient.condition === selectedCondition
-    const matchesStatus = !selectedStatus || patient.status === selectedStatus
-    
-    return matchesSearch && matchesCondition && matchesStatus
+                         patient.condition.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesHospital = selectedHospital === 'all' || patient.hospital === selectedHospital
+    return matchesSearch && matchesHospital
   })
+
+  if (loading) {
+    return <div className="p-6">Loading patients...</div>
+  }
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Active': return 'bg-green-100 text-green-800'
-      case 'Completed': return 'bg-gray-100 text-gray-800'
-      case 'Withdrawn': return 'bg-red-100 text-red-800'
+      case 'Eligible': return 'bg-green-100 text-green-800'
+      case 'Not Eligible': return 'bg-red-100 text-red-800'
       default: return 'bg-yellow-100 text-yellow-800'
     }
   }
 
   const getResponseColor = (response) => {
     switch (response) {
-      case 'Excellent': return 'bg-green-100 text-green-800'
-      case 'Positive': return 'bg-blue-100 text-blue-800'
-      case 'Moderate': return 'bg-yellow-100 text-yellow-800'
-      case 'Poor': return 'bg-red-100 text-red-800'
+      case 'Positive': return 'bg-green-100 text-green-800'
+      case 'Negative': return 'bg-red-100 text-red-800'
       default: return 'bg-gray-100 text-gray-800'
     }
   }
@@ -241,26 +318,15 @@ export default function Patients() {
                     />
                   </div>
                 </div>
-                <Select value={selectedCondition} onValueChange={setSelectedCondition}>
+                <Select value={selectedHospital} onValueChange={setSelectedHospital}>
                   <SelectTrigger className="w-full md:w-48">
-                    <SelectValue placeholder="All Conditions" />
+                    <SelectValue placeholder="All Hospitals" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Conditions</SelectItem>
-                    <SelectItem value="Lung Cancer">Lung Cancer</SelectItem>
-                    <SelectItem value="Heart Failure">Heart Failure</SelectItem>
-                    <SelectItem value="Alzheimer's">Alzheimer's</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                  <SelectTrigger className="w-full md:w-48">
-                    <SelectValue placeholder="All Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">All Status</SelectItem>
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="Completed">Completed</SelectItem>
-                    <SelectItem value="Withdrawn">Withdrawn</SelectItem>
+                    <SelectItem value="all">All Hospitals</SelectItem>
+                    <SelectItem value="Hospital_A">Hospital A</SelectItem>
+                    <SelectItem value="Hospital_B">Hospital B</SelectItem>
+                    <SelectItem value="Hospital_C">Hospital C</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -274,6 +340,7 @@ export default function Patients() {
                       <TableHead>Demographics</TableHead>
                       <TableHead>Condition</TableHead>
                       <TableHead>Trial Drug</TableHead>
+                      <TableHead>Hospital</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Response</TableHead>
                       <TableHead>Last Visit</TableHead>
@@ -291,6 +358,7 @@ export default function Patients() {
                         </TableCell>
                         <TableCell>{patient.condition}</TableCell>
                         <TableCell>{patient.trialDrug}</TableCell>
+                        <TableCell>{patient.hospital}</TableCell>
                         <TableCell>
                           <Badge className={getStatusColor(patient.status)}>
                             {patient.status}

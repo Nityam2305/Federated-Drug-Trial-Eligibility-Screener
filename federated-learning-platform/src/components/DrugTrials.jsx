@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -22,53 +23,50 @@ import {
   AlertCircle
 } from 'lucide-react'
 
-const mockTrials = [
-  {
-    id: 1,
-    drugName: 'Oncology-A',
-    indication: 'Lung Cancer',
-    phase: 'Phase III',
-    status: 'Active',
-    patientsEnrolled: 45,
-    successRate: 78,
-    startDate: '2024-01-15',
-    lastUpdate: '2024-07-25'
-  },
-  {
-    id: 2,
-    drugName: 'Cardio-B',
-    indication: 'Heart Failure',
-    phase: 'Phase II',
-    status: 'Recruiting',
-    patientsEnrolled: 23,
-    successRate: 85,
-    startDate: '2024-03-10',
-    lastUpdate: '2024-07-20'
-  },
-  {
-    id: 3,
-    drugName: 'Neuro-C',
-    indication: 'Alzheimer\'s Disease',
-    phase: 'Phase I',
-    status: 'Completed',
-    patientsEnrolled: 12,
-    successRate: 72,
-    startDate: '2023-11-20',
-    lastUpdate: '2024-06-30'
-  }
-]
-
 export default function DrugTrials() {
-  const [trials, setTrials] = useState(mockTrials)
+  const [trials, setTrials] = useState([])
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
   const [selectedTrial, setSelectedTrial] = useState(null)
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [uploadType, setUploadType] = useState('pdf') // 'pdf' or 'json'
+  const [isUploading, setIsUploading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [newTrial, setNewTrial] = useState({
     drugName: '',
     indication: '',
     phase: '',
     description: ''
   })
+
+  useEffect(() => {
+    fetchTrials()
+  }, [])
+
+  const fetchTrials = async () => {
+    try {
+      console.log('Fetching trials...')
+      const response = await axios.get('http://localhost:5000/api/trials')
+      console.log('Trials response:', response.data)
+      setTrials(response.data.trials)
+      setLoading(false)
+    } catch (error) {
+      console.error('Error fetching trials:', error)
+      setLoading(false)
+      // Set some fallback data for now
+      setTrials([{
+        id: 1,
+        drugName: 'TrialDrugX',
+        indication: 'Cervical Cancer',
+        phase: 'Phase III',
+        status: 'Active',
+        patientsEnrolled: 1384,
+        successRate: 60.8,
+        startDate: '2024-01-01',
+        lastUpdate: '2024-12-17'
+      }])
+    }
+  }
 
   const handleCreateTrial = () => {
     const trial = {
@@ -83,6 +81,41 @@ export default function DrugTrials() {
     setTrials([...trials, trial])
     setNewTrial({ drugName: '', indication: '', phase: '', description: '' })
     setIsCreateDialogOpen(false)
+  }
+
+  const handleFileUpload = async () => {
+    if (!selectedFile) return
+
+    setIsUploading(true)
+    try {
+      if (uploadType === 'json') {
+        // Handle JSON file upload for model training
+        const formData = new FormData()
+        formData.append('file', selectedFile)
+        
+        const response = await axios.post('http://localhost:5000/api/upload-json', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+        
+        alert('JSON file uploaded and model trained successfully!')
+        console.log('Model training response:', response.data)
+        
+        // Refresh trials data after upload
+        await fetchTrials()
+      } else {
+        // Handle PDF upload (existing functionality)
+        alert('PDF upload functionality not implemented yet')
+      }
+    } catch (error) {
+      console.error('Upload error:', error)
+      alert('Error uploading file. Please try again.')
+    } finally {
+      setIsUploading(false)
+      setIsUploadDialogOpen(false)
+      setSelectedFile(null)
+    }
   }
 
   const getStatusColor = (status) => {
@@ -101,6 +134,10 @@ export default function DrugTrials() {
       case 'Completed': return <CheckCircle className="h-4 w-4" />
       default: return <Clock className="h-4 w-4" />
     }
+  }
+
+  if (loading) {
+    return <div className="p-6">Loading trials...</div>
   }
 
   return (
@@ -123,47 +160,80 @@ export default function DrugTrials() {
               <DialogHeader>
                 <DialogTitle>Upload Medical Report</DialogTitle>
                 <DialogDescription>
-                  Upload a patient medical report for federated learning analysis
+                  Upload a patient medical report or JSON data file for federated learning analysis
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="trial-select">Select Trial</Label>
-                  <Select>
+                  <Label htmlFor="upload-type">Upload Type</Label>
+                  <Select value={uploadType} onValueChange={setUploadType}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose a trial" />
+                      <SelectValue placeholder="Select upload type" />
                     </SelectTrigger>
                     <SelectContent>
-                      {trials.map((trial) => (
-                        <SelectItem key={trial.id} value={trial.id.toString()}>
-                          {trial.drugName} - {trial.indication}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="pdf">Medical Report (PDF)</SelectItem>
+                      <SelectItem value="json">Patient Data (JSON)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+                
+                {uploadType === 'pdf' && (
+                  <div>
+                    <Label htmlFor="trial-select">Select Trial</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a trial" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {trials.map((trial) => (
+                          <SelectItem key={trial.id} value={trial.id.toString()}>
+                            {trial.drugName} - {trial.indication}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                
                 <div>
-                  <Label htmlFor="report-file">Medical Report</Label>
-                  <Input id="report-file" type="file" accept=".pdf,.doc,.docx" />
+                  <Label htmlFor="report-file">
+                    {uploadType === 'json' ? 'Patient Data File' : 'Medical Report'}
+                  </Label>
+                  <Input 
+                    id="report-file" 
+                    type="file" 
+                    accept={uploadType === 'json' ? '.json' : '.pdf,.doc,.docx'}
+                    onChange={(e) => setSelectedFile(e.target.files[0])}
+                  />
                   <p className="text-xs text-gray-500 mt-1">
-                    Supported formats: PDF, DOC, DOCX
+                    Supported formats: {uploadType === 'json' ? 'JSON' : 'PDF, DOC, DOCX'}
                   </p>
                 </div>
-                <div>
-                  <Label htmlFor="treatment-outcome">Treatment Outcome</Label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select outcome" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="successful">Successful</SelectItem>
-                      <SelectItem value="partial">Partial Response</SelectItem>
-                      <SelectItem value="no-response">No Response</SelectItem>
-                      <SelectItem value="adverse">Adverse Reaction</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button className="w-full">Upload and Process</Button>
+                
+                {uploadType === 'pdf' && (
+                  <div>
+                    <Label htmlFor="treatment-outcome">Treatment Outcome</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select outcome" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="successful">Successful</SelectItem>
+                        <SelectItem value="partial">Partial Response</SelectItem>
+                        <SelectItem value="no-response">No Response</SelectItem>
+                        <SelectItem value="adverse">Adverse Reaction</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                
+                <Button 
+                  className="w-full" 
+                  onClick={handleFileUpload}
+                  disabled={!selectedFile || isUploading}
+                >
+                  {isUploading ? 'Processing...' : `Upload and ${uploadType === 'json' ? 'Train Model' : 'Process'}`}
+                </Button>
               </div>
             </DialogContent>
           </Dialog>

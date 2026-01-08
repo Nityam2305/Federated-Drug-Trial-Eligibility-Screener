@@ -1,0 +1,51 @@
+{
+  "hospitals": {
+    "Hospital_C": [
+      {
+        "patient_id": "Hospital_C_001",
+        "age": 55,
+        "gender": "Female",
+        "blood_group": "O+",
+        "disease": "Breast Cancer",
+        "stage": "III",
+        "comorbidities": ["Diabetes", "Hypertension"],
+        "bmi": 27.5,
+        "diagnosis_date": "2024-08-15",
+        "drug": "Oncology-A",
+        "hospital": "Hospital_C",
+        "eligible": 1,
+        "drug_worked": 1
+      },
+      {
+        "patient_id": "Hospital_C_002",
+        "age": 68,
+        "gender": "Male",
+        "blood_group": "A-",
+        "disease": "Prostate Cancer",
+        "stage": "II",
+        "comorbidities": [],
+        "bmi": 29.2,
+        "diagnosis_date": "2024-09-01",
+        "drug": "Oncology-A",
+        "hospital": "Hospital_C",
+        "eligible": 1,
+        "drug_worked": 0
+      },
+      {
+        "patient_id": "Hospital_C_003",
+        "age": 42,
+        "gender": "Female",
+        "blood_group": "B+",
+        "disease": "Ovarian Cancer",
+        "stage": "I",
+        "comorbidities": ["Anemia"],
+        "bmi": 22.1,
+        "diagnosis_date": "2024-07-20",
+        "drug": "Oncology-A",
+        "hospital": "Hospital_C",
+        "eligible": 1,
+        "drug_worked": 1
+      }
+    ]
+  }
+}
