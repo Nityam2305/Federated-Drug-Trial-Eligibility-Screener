@@ -1,0 +1,6 @@
+patient_id,age,gender,blood_group,disease,stage,comorbidities,bmi,diagnosis_date,drug,eligible,drug_worked
+PT001,45,M,O+,Diabetes,2,Hypertension;Obesity,28.5,2023-01-15,Metformin,1,1
+PT002,52,F,A-,Cancer,3,None,22.1,2023-02-20,Tamoxifen,1,0
+PT003,38,M,B+,Heart Disease,1,Obesity;Smoking,31.2,2023-03-10,Lisinopril,0,0
+PT004,61,F,AB+,Diabetes,2,Hypertension,26.8,2023-04-05,Insulin,1,1
+PT005,48,M,O-,Hypertension,1,Diabetes,24.5,2023-05-12,Enalapril,1,1
