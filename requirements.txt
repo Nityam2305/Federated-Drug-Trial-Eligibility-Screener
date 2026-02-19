@@ -1,5 +1,4 @@
 flwr[simulation]
-tensorflow
 web3
 fastapi
 uvicorn
@@ -11,3 +10,6 @@ PyPDF2
 motor
 pymongo[srv]
 python-multipart
+# TensorFlow excluded from production - too large for serverless
+# For development: pip install -r requirements-dev.txt
+# For production: pip install -r requirements-prod.txt (or just requirements.txt)

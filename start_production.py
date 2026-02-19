@@ -20,7 +20,7 @@ def check_requirements():
         'motor',
         'pymongo',
         'web3',
-        'tensorflow',
+        # 'tensorflow',  # Too large for Render free tier
     ]
     
     missing = []
