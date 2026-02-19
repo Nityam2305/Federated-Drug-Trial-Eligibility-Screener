@@ -1,0 +1,627 @@
+================================================================================
+FEDERATED DRUG TRIAL ELIGIBILITY SCREENER - COMPREHENSIVE PROJECT DOCUMENTATION
+================================================================================
+
+Generated: February 19, 2026
+Project: Privacy-Preserving Federated Learning System for Drug Trial Eligibility
+Technologies: Python, FastAPI, TensorFlow/Keras, Flower (Federated Learning), 
+              MongoDB Atlas, Ethereum/Ganache, React, Vite
+
+================================================================================
+PROJECT STRUCTURE
+================================================================================
+
+Federated-Drug-Trial-Eligibility-Screener-main/
+│
+├── api/
+│   └── main.py                    # FastAPI REST API (1006 lines)
+│
+├── blockchain/
+│   ├── AuditLogger.sol           # Smart contract for audit logging
+│   ├── FederatedTrainingLogger.sol # Smart contract for training metadata
+│   └── logger.py                  # Blockchain interaction layer (767 lines)
+│
+├── clients/
+│   └── client.py                  # Federated Learning client implementation
+│
+├── fl_server/
+│   └── server.py                  # Federated Learning server (Flower) (111 lines)
+│
+├── frontend/
+│   ├── index.html                 # Main HTML entry point
+│   ├── package.json               # Frontend dependencies (React, Vite, etc.)
+│   ├── tailwind.config.js         # Tailwind CSS configuration
+│   ├── vite.config.js             # Vite build configuration
+│   │
+│   └── src/
+│       ├── main.jsx               # React app entry point
+│       ├── App.jsx                # Main application component
+│       ├── index.css              # Global styles
+│       │
+│       ├── components/
+│       │   ├── LoginPage.jsx      # Authentication UI
+│       │   ├── Dashboard.jsx      # Main dashboard component
+│       │   ├── Overview.jsx       # Statistics overview
+│       │   ├── PatientsManager.jsx # Patient management UI
+│       │   ├── TrialsViewer.jsx   # Clinical trials viewer
+│       │   ├── TrainingControls.jsx # FL training controls
+│       │   ├── BlockchainTable.jsx # Blockchain audit logs UI
+│       │   │
+│       │   └── ui/
+│       │       ├── Button.jsx
+│       │       ├── Card.jsx
+│       │       ├── Modal.jsx
+│       │       ├── Toast.jsx
+│       │       ├── Accordion.jsx
+│       │       ├── Skeleton.jsx
+│       │       ├── StatusBadge.jsx
+│       │       ├── ThemeToggle.jsx
+│       │       └── index.js
+│       │
+│       ├── services/
+│       │   ├── apiService.js      # Backend API client
+│       │   └── blockchainService.js # Blockchain interaction
+│       │
+│       ├── hooks/
+│       │   ├── useBlockchainLogs.js # Custom hook for blockchain logs
+│       │   └── useTrainingData.js  # Custom hook for training data
+│       │
+│       ├── stores/
+│       │   └── themeStore.js      # Zustand state management
+│       │
+│       └── utils/
+│           └── motionVariants.js   # Framer Motion animations
+│
+├── scripts/
+│   └── seed_personal_details.py   # MongoDB seeding script
+│
+├── database.py                     # MongoDB database layer (532 lines)
+├── data_utils.py                   # Data preprocessing utilities
+├── model.py                        # Neural network model definition
+├── preprocessing.py                # File upload preprocessing (500+ lines)
+├── run.py                          # Main run script
+├── run_backend.py                  # Backend startup script
+├── requirements.txt                # Python dependencies
+├── .env                            # Environment configuration
+├── .env.example                    # Environment template
+├── .gitignore                      # Git ignore rules
+└── README.md                       # Project documentation
+
+================================================================================
+KEY FILES CONTENT
+================================================================================
+
+1. requirements.txt
+-------------------
+flwr[simulation]          # Federated Learning framework
+tensorflow                # Neural network training
+web3                      # Ethereum blockchain interaction
+fastapi                   # REST API framework
+uvicorn                   # ASGI server
+python-dotenv             # Environment variable management
+pandas                    # Data manipulation
+scikit-learn              # Machine learning utilities
+eth-account               # Ethereum account management
+PyPDF2                    # PDF processing
+motor                     # Async MongoDB driver
+pymongo[srv]              # Sync MongoDB driver
+python-multipart          # File upload support
+
+
+2. .env (Environment Configuration)
+------------------------------------
+# MongoDB Configuration
+MONGO_URI=mongodb+srv://yb15313037_db_user:D09J5gpczE2QAAD8@cluster0.oxujjgd.mongodb.net/
+MONGO_DB_NAME=federated_screener
+
+# Blockchain Configuration
+BLOCKCHAIN_LOCAL=true
+PRIVATE_KEY=0x0000000000000000000000000000000000000000000000000000000000000000
+CONTRACT_ADDRESS=0x0000000000000000000000000000000000000000
+
+
+3. run_backend.py
+-----------------
+#!/usr/bin/env python3
+"""Simple script to run the backend API"""
+import sys
+import os
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from api.main import app
+import uvicorn
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8002)
+
+
+4. model.py (Neural Network)
+-----------------------------
+import tensorflow as tf
+
+def create_model(input_dim: int) -> tf.keras.Model:
+    """Creates a neural network model for drug trial eligibility prediction."""
+    model = tf.keras.Sequential([
+        tf.keras.layers.Dense(32, activation="relu", input_shape=(input_dim,)),
+        tf.keras.layers.Dropout(0.2),
+        tf.keras.layers.Dense(16, activation="relu"),
+        tf.keras.layers.Dropout(0.2),
+        tf.keras.layers.Dense(8, activation="relu"),
+        tf.keras.layers.Dense(1, activation="sigmoid")
+    ])
+
+    model.compile(
+        optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+        loss="binary_crossentropy",
+        metrics=["accuracy"]
+    )
+    return model
+
+
+5. frontend/package.json
+-------------------------
+{
+  "name": "federated-screener-dashboard",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint . --ext js,jsx",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "ethers": "^6.8.0",
+    "framer-motion": "^12.34.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "recharts": "^2.8.0",
+    "zustand": "^5.0.11"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.7",
+    "@vitejs/plugin-react": "^4.0.3",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^8.45.0",
+    "tailwindcss": "^3.3.3",
+    "vite": "^4.4.5"
+  }
+}
+
+
+================================================================================
+DATABASE SCHEMA (MongoDB)
+================================================================================
+
+Collections:
+-----------
+
+1. patients
+   - patient_id: String (unique identifier)
+   - patient_name: String
+   - phone: String
+   - email: String
+   - address: String
+   - emergency_contact: String
+   - admission_date: String
+   - age: Number
+   - gender: String (Male/Female)
+   - blood_group: String (A+, A-, B+, B-, AB+, AB-, O+, O-)
+   - disease: String
+   - stage: String (I, II, III, IV)
+   - comorbidities: Array of Strings
+   - bmi: Number
+   - diagnosis_date: String
+   - drug: String
+   - eligible: Number (0/1)
+   - drug_worked: Number (0/1)
+   - hospital: String
+
+2. audit_logs
+   - action: String
+   - details: String
+   - actor: String
+   - timestamp: Number
+   - record_count: Number
+   - metadata: Object
+   - txHash: String
+
+3. training_logs
+   - round: Number
+   - accuracy: Number
+   - loss: Number
+   - timestamp: String
+   - model_hash: String
+
+4. hospitals
+   - username: String (unique)
+   - password: String
+   - hospital_name: String
+   - email: String
+
+5. trials
+   - drugName: String (unique)
+   - indication: String
+   - phase: String
+   - status: String
+   - successRate: Number
+
+
+================================================================================
+API ENDPOINTS (FastAPI Backend - Port 8002)
+================================================================================
+
+Authentication:
+--------------
+POST   /auth/login                # Authenticate hospital user
+       Request:  {"username": "...", "password": "..."}
+       Response: {"user": {...}}
+
+Health & Stats:
+--------------
+GET    /health                    # System health check
+GET    /stats                     # Dashboard statistics
+GET    /stats/hospitals           # Hospital list with info
+GET    /stats/diseases            # Disease breakdown
+
+Patients:
+--------
+GET    /patients                  # Paginated patients with search/sort
+       Query: ?page=1&page_size=50&search=...&sort_by=...&sort_dir=asc
+
+Clinical Trials:
+---------------
+GET    /trials                    # List all trials with eligibility
+GET    /trials/{drug_name}/eligible  # Get eligible patients for trial
+       Query: ?hospital=...&page=1&page_size=50&tab=eligible
+
+File Upload:
+-----------
+POST   /upload                    # Upload CSV/JSON/PDF patient data
+POST   /upload-csv                # Upload CSV file
+POST   /upload-json               # Upload JSON file
+POST   /upload-pdf                # Upload PDF file
+GET    /upload-progress/{upload_id}  # Check upload progress
+
+Predictions:
+-----------
+POST   /predict                   # Predict patient eligibility
+       Request:  {"patient_id": "...", "age": 45, ...}
+
+Federated Learning:
+------------------
+POST   /start-fl                  # Start federated learning
+POST   /start-training            # Start training simulation
+POST   /stop-training             # Stop training
+POST   /reset-training            # Reset training state
+GET    /training-logs             # Get training round logs
+GET    /training-status           # Get current training status
+GET    /model-metrics             # Get model performance metrics
+
+Blockchain:
+----------
+GET    /blockchain-logs           # Get audit trail logs
+POST   /log-activity              # Log frontend activity
+       Request: {"action": "...", "details": "...", "actor": "..."}
+
+
+================================================================================
+ARCHITECTURE OVERVIEW
+================================================================================
+
+1. Frontend (React + Vite)
+   - Port: 3000
+   - Framework: React 18
+   - Build Tool: Vite
+   - Styling: Tailwind CSS
+   - State: Zustand
+   - Animations: Framer Motion
+   - Charts: Recharts
+   - HTTP Client: Axios
+
+2. Backend (FastAPI)
+   - Port: 8002
+   - Framework: FastAPI
+   - Server: Uvicorn
+   - Database: MongoDB Atlas (Cloud)
+   - Blockchain: Ganache (Local) or Sepolia Testnet
+   - ML Framework: TensorFlow/Keras
+   - FL Framework: Flower
+
+3. Database (MongoDB Atlas)
+   - Cloud-hosted MongoDB
+   - Collections: patients, audit_logs, training_logs, hospitals, trials
+   - Indexes on key fields for performance
+
+4. Blockchain (Ethereum)
+   - Local: Ganache (port 8545)
+   - Testnet: Sepolia via Infura
+   - Smart Contracts: FederatedTrainingLogger, AuditLogger
+   - Purpose: Immutable audit trail, training metadata logging
+
+5. Federated Learning
+   - Server: Flower (port 8080)
+   - Strategy: FedAvg (Federated Averaging)
+   - Clients: 3 simulated hospital clients
+   - Model: Sequential neural network (eligibility prediction)
+
+
+================================================================================
+DATA FLOW
+================================================================================
+
+1. User Login:
+   Frontend → POST /auth/login → MongoDB (hospitals collection) → JWT/Session
+
+2. View Patients:
+   Frontend → GET /patients?page=1 → MongoDB (patients collection) → Paginated response
+
+3. Upload Patient Data:
+   Frontend → POST /upload (CSV/JSON/PDF) → preprocessing.py → 
+   MongoDB (patients collection) → Blockchain (audit log)
+
+4. Start Training:
+   Frontend → POST /start-training → FL Server → FL Clients → 
+   Model Training → MongoDB (training_logs) → Blockchain (metadata)
+
+5. View Trials:
+   Frontend → GET /trials → MongoDB (trials, patients) → 
+   Eligibility computation → Response with eligible counts
+
+6. Check Eligibility:
+   Frontend → GET /trials/{drug}/eligible → MongoDB (patients) → 
+   Privacy-preserving filtering → Anonymized response
+
+
+================================================================================
+SECURITY & PRIVACY
+================================================================================
+
+1. Authentication:
+   - Password-based login (MongoDB-backed)
+   - Hospital-specific credentials
+
+2. Data Privacy:
+   - Patient identities anonymized in federated views
+   - Personal info (name, phone, email, address) hidden in trial screening
+   - Only medical/demographic data shared for eligibility
+
+3. Blockchain:
+   - Only metadata logged (no patient data)
+   - Immutable audit trail
+   - Training round metrics tracked
+
+4. Federated Learning:
+   - Local model training (data stays at hospitals)
+   - Model aggregation via FedAvg
+   - No raw patient data transmitted
+
+
+================================================================================
+SETUP & DEPLOYMENT
+================================================================================
+
+Prerequisites:
+-------------
+- Python 3.8+
+- Node.js & npm
+- MongoDB Atlas account (or local MongoDB)
+- Ganache (for local blockchain) or Infura (for testnet)
+
+Installation:
+------------
+1. Clone repository
+2. Create virtual environment:
+   python -m venv .venv311
+   .venv311\Scripts\activate (Windows)
+   source .venv311/bin/activate (Linux/Mac)
+
+3. Install Python dependencies:
+   pip install -r requirements.txt
+
+4. Install frontend dependencies:
+   cd frontend
+   npm install
+
+5. Configure environment:
+   cp .env.example .env
+   # Edit .env with MongoDB and blockchain settings
+
+6. Start Ganache (optional, for local blockchain):
+   npm install -g ganache
+   ganache
+
+Running the Application:
+------------------------
+1. Start Backend:
+   python run_backend.py
+   OR
+   .\.venv311\Scripts\python.exe -m uvicorn api.main:app --host 0.0.0.0 --port 8002
+
+2. Start Frontend:
+   cd frontend
+   npm run dev
+
+3. Access Application:
+   Frontend: http://localhost:3000
+   Backend API: http://localhost:8002
+   API Docs: http://localhost:8002/docs
+
+
+================================================================================
+DEFAULT CREDENTIALS
+================================================================================
+
+Hospital Users:
+--------------
+1. Username: SaiPrasad24S
+   Password: 2724
+   Hospital: Sai Prasad Medical Center
+
+2. Username: apollo
+   Password: apollo@123
+   Hospital: Apollo Hospitals
+
+3. Username: fortis
+   Password: fortis@123
+   Hospital: Fortis Healthcare
+
+4. Username: max
+   Password: max@123
+   Hospital: Max Super Specialty Hospital
+
+
+================================================================================
+KEY FEATURES
+================================================================================
+
+1. Privacy-Preserving Federated Learning
+   - Multiple hospitals collaborate without sharing raw data
+   - Federated Averaging (FedAvg) strategy
+   - Local model training, global model aggregation
+
+2. Blockchain Audit Trail
+   - Immutable logging of system events
+   - Training metadata on-chain
+   - Transparency and accountability
+
+3. Clinical Trial Management
+   - Dynamic eligibility screening
+   - Privacy-preserving patient matching
+   - Real-time eligible patient counts
+
+4. Patient Data Management
+   - Flexible upload (CSV, JSON, PDF)
+   - Automatic preprocessing and normalization
+   - MongoDB-based storage
+
+5. Real-time Training Monitoring
+   - Live training metrics
+   - Round-by-round accuracy/loss tracking
+   - Visual charts and graphs
+
+6. Modern UI/UX
+   - Responsive design
+   - Dark/light theme toggle
+   - Smooth animations
+   - Accessible components
+
+
+================================================================================
+PREPROCESSING PIPELINE
+================================================================================
+
+Supported file types: CSV, JSON, PDF
+
+Standard columns:
+- patient_id, patient_name, phone, email, address
+- emergency_contact, admission_date
+- age, gender, blood_group, disease, stage
+- comorbidities, bmi, diagnosis_date, drug
+- eligible, drug_worked, hospital
+
+Preprocessing steps:
+1. Detect file type and parse content
+2. Map columns to standard schema
+3. Fill missing values with defaults
+4. Normalize data types (gender, stage, blood group)
+5. Generate patient IDs if missing
+6. Save to MongoDB
+7. Generate federated training CSV
+
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Common Issues:
+-------------
+1. Backend won't start:
+   - Check MongoDB connection (MONGO_URI in .env)
+   - Verify Python dependencies installed
+   - Check port 8002 is not in use
+
+2. Frontend won't start:
+   - Run: npm install
+   - Check Node.js version (14+)
+   - Verify vite is installed
+
+3. Login fails:
+   - Check MongoDB connection
+   - Verify hospital credentials in database
+   - Check browser console for errors
+
+4. Training fails:
+   - Ensure FL server is not auto-starting
+   - Check training data CSV exists
+   - Verify TensorFlow installation
+
+5. Blockchain errors:
+   - Check Ganache is running (port 8545)
+   - Verify CONTRACT_ADDRESS in .env
+   - Check PRIVATE_KEY is set
+
+
+================================================================================
+DEVELOPMENT NOTES
+================================================================================
+
+Modified Files:
+--------------
+- api/main.py: Disabled FL server auto-import to prevent blocking
+- .env: Created with MongoDB Atlas credentials
+
+Current Status:
+--------------
+✓ Backend API running on port 8002
+✓ Frontend running on port 3000
+✓ MongoDB Atlas connected
+✓ Blockchain in mock mode (contract not deployed)
+✓ 10,002 patients in database
+✓ 4 hospital users configured
+✓ 15 drug trials defined
+
+Known Limitations:
+-----------------
+- FL server auto-start disabled (start manually if needed)
+- Blockchain smart contract not deployed (using mock logger)
+- Training simulation only (not real FL training)
+
+
+================================================================================
+FUTURE ENHANCEMENTS
+================================================================================
+
+1. Real smart contract deployment
+2. Multi-factor authentication
+3. Role-based access control (RBAC)
+4. Real-time WebSocket updates
+5. Advanced analytics dashboard
+6. Data export functionality
+7. Automated report generation
+8. Mobile app support
+9. Multi-language support
+10. HIPAA compliance features
+
+
+================================================================================
+CONTACT & SUPPORT
+================================================================================
+
+For issues, questions, or contributions:
+- Check the README.md
+- Review API documentation at http://localhost:8002/docs
+- Examine browser console for frontend errors
+- Check backend terminal for server logs
+
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================
+Generated: February 19, 2026
+Project: Federated Drug Trial Eligibility Screener
+Version: 1.0

@@ -1,0 +1,223 @@
+================================================================================
+QUICK DEPLOYMENT REFERENCE - VERCEL + RENDER
+================================================================================
+
+Use this quick reference while deploying. Full guide: VERCEL_RENDER_DEPLOYMENT_STEPS.md
+
+================================================================================
+STEP 1: PUSH TO GITHUB (5 min)
+================================================================================
+
+git init
+git add .
+git commit -m "Ready for deployment"
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
+git push -u origin main
+
+⚠️ Verify .env is in .gitignore (don't commit secrets!)
+
+================================================================================
+STEP 2: DEPLOY BACKEND TO RENDER (15 min)
+================================================================================
+
+1. Go to: https://render.com/dashboard
+2. Click: "New +" → "Web Service"
+3. Connect: Your GitHub repository
+
+SETTINGS:
+┌─────────────────────┬────────────────────────────────────────────────┐
+│ Name                │ federated-screener-api                         │
+│ Region              │ Oregon (US West)                               │
+│ Branch              │ main                                           │
+│ Runtime             │ Python 3                                       │
+│ Build Command       │ pip install -r requirements.txt                │
+│ Start Command       │ python start_production.py                     │
+│ Instance Type       │ Free                                           │
+│ Health Check Path   │ /health                                        │
+└─────────────────────┴────────────────────────────────────────────────┘
+
+ENVIRONMENT VARIABLES (copy from your .env):
+┌──────────────────┬───────────────────────────────────────────────────┐
+│ MONGO_URI        │ mongodb+srv://user:pass@cluster0.mongodb.net/    │
+│ MONGO_DB_NAME    │ federated_screener                                │
+│ BLOCKCHAIN_LOCAL │ false                                             │
+└──────────────────┴───────────────────────────────────────────────────┘
+
+4. Click "Create Web Service" → Wait 5-10 minutes
+5. ✅ Test: https://YOUR-SERVICE.onrender.com/health
+
+COPY YOUR BACKEND URL → Need it for Vercel!
+
+================================================================================
+STEP 3: DEPLOY FRONTEND TO VERCEL (10 min)
+================================================================================
+
+1. Go to: https://vercel.com/dashboard
+2. Click: "Add New..." → "Project"
+3. Import: Your GitHub repository
+
+SETTINGS:
+┌─────────────────────┬────────────────────────────────────────────────┐
+│ Framework Preset    │ Vite                                           │
+│ Root Directory      │ ./                                             │
+│ Build Command       │ cd frontend && npm install && npm run build    │
+│ Output Directory    │ frontend/dist                                  │
+│ Install Command     │ npm install                                    │
+└─────────────────────┴────────────────────────────────────────────────┘
+
+ENVIRONMENT VARIABLE:
+┌──────────────────┬───────────────────────────────────────────────────┐
+│ VITE_API_URL     │ https://YOUR-SERVICE.onrender.com                 │
+└──────────────────┴───────────────────────────────────────────────────┘
+                     ↑ Use your Render backend URL from Step 2
+
+4. Click "Deploy" → Wait 3-5 minutes
+5. ✅ Test: https://YOUR-PROJECT.vercel.app
+
+================================================================================
+STEP 4: TEST PRODUCTION (5 min)
+================================================================================
+
+Frontend: https://YOUR-PROJECT.vercel.app
+├─ Login page loads? _____
+├─ Can login? (SaiPrasad24S / 2724) _____
+├─ Dashboard shows data? _____
+├─ No console errors (F12)? _____
+└─ All pages work? _____
+
+Backend: https://YOUR-SERVICE.onrender.com/health
+├─ Returns {"status": "healthy"}? _____
+├─ "mongodb_connected": true? _____
+└─ API docs work (/docs)? _____
+
+================================================================================
+STEP 5: SECURE CORS (5 min)
+================================================================================
+
+Update api/main.py:
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "https://YOUR-PROJECT.vercel.app",  # ← Add your Vercel URL
+    ],
+    ...
+)
+
+git add api/main.py
+git commit -m "Update CORS for production"
+git push
+
+Wait for auto-redeploy on Render (~5 min)
+
+================================================================================
+OPTIONAL: KEEP BACKEND WARM (5 min)
+================================================================================
+
+Free tier sleeps after 15 min. Use UptimeRobot:
+
+1. Sign up: https://uptimerobot.com
+2. Add Monitor:
+   - Type: HTTP(s)
+   - URL: https://YOUR-SERVICE.onrender.com/health
+   - Interval: 14 minutes
+3. Save
+
+Backend will stay awake 24/7!
+
+================================================================================
+TROUBLESHOOTING QUICK FIXES
+================================================================================
+
+Backend won't deploy?
+→ Check Render logs for errors
+→ Verify MONGO_URI is set
+→ Test build locally: pip install -r requirements.txt
+
+Frontend shows errors?
+→ Check browser console (F12)
+→ Verify VITE_API_URL matches Render URL
+→ Hard refresh: Ctrl+Shift+R
+
+MongoDB connection error?
+→ Check MongoDB Atlas Network Access → Add 0.0.0.0/0
+→ Verify database user credentials
+→ Test connection string locally
+
+API calls fail (Network Error)?
+→ Check CORS in backend
+→ Verify backend is running (not sleeping)
+→ Check backend health endpoint
+
+================================================================================
+YOUR DEPLOYMENT NOTES
+================================================================================
+
+Deployment Date: _____________________
+
+Backend URL: _____________________
+Frontend URL: _____________________
+
+Test Credentials:
+- Username: SaiPrasad24S
+- Password: 2724
+
+MongoDB:
+- Database: federated_screener
+- Patients: 10,002
+- Hospitals: 4
+- Trials: 15
+
+Issues Encountered:
+_____________________
+_____________________
+_____________________
+
+================================================================================
+USEFUL COMMANDS
+================================================================================
+
+# Check what's running locally
+Get-Process python,node | Where-Object {$_.Path -like '*Federated*'}
+
+# Test backend health (local)
+curl http://localhost:8002/health
+
+# Test backend health (production)
+curl https://YOUR-SERVICE.onrender.com/health
+
+# Rebuild frontend locally
+cd frontend; npm run build
+
+# Test MongoDB connection
+.\.venv311\Scripts\python.exe -c "from database import init_database; init_database()"
+
+# View Render logs
+https://dashboard.render.com → Your Service → Logs
+
+# View Vercel deployments
+https://vercel.com/dashboard → Your Project → Deployments
+
+================================================================================
+POST-DEPLOYMENT CHECKLIST
+================================================================================
+
+□ Backend deployed and healthy
+□ Frontend deployed and accessible
+□ Login works in production
+□ Dashboard loads with data
+□ CORS updated with production URLs
+□ UptimeRobot configured (optional)
+□ URLs shared with stakeholders
+□ Documentation updated with URLs
+□ Monitoring set up
+□ Ready for users!
+
+================================================================================
+
+Full documentation: VERCEL_RENDER_DEPLOYMENT_STEPS.md
+MongoDB info: MONGODB_VERIFICATION.txt
+Project details: PROJECT_DOCUMENTATION.txt
+
+🚀 Ready to deploy!
