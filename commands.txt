@@ -1,0 +1,18 @@
+To run the Federated Drug Trial Eligibility Screener, you need to open three separate terminal windows (PowerShell or Command Prompt) and run the following commands.
+
+Note: Make sure you have the generated `.env` files in both the root folder and the `frontend` folder for the database connections and API URLs to work properly.
+
+---
+
+### Terminal 1: Start the Blockchain (Ganache)
+Open a terminal in the main project folder (`Federated-Drug-Trial-Eligibility-Screener-main`) and run:
+npx ganache
+
+### Terminal 2: Start the Python Backend
+Open a second terminal in the main project folder (`Federated-Drug-Trial-Eligibility-Screener-main`) and run:
+.\.venv311\Scripts\python.exe -m uvicorn api.main:app --host 0.0.0.0 --port 8002
+
+### Terminal 3: Start the React Frontend
+Open a third terminal in the main project folder, navigate to the `frontend` directory, and start the development server:
+cd frontend
+npm run dev
