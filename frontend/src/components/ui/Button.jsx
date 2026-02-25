@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 
 const variants = {
   primary: 'btn-primary',
+  accent: 'btn-accent',
   secondary: 'btn-secondary',
   danger: 'btn-danger',
   ghost: 'btn-ghost',

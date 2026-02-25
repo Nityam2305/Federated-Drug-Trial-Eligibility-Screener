@@ -86,7 +86,7 @@ const GridPattern = ({ isDark }) => (
     <svg width="100%" height="100%">
       <defs>
         <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-          <path d="M 40 0 L 0 0 0 40" fill="none" stroke={isDark ? '#20E3B2' : '#6366F1'} strokeWidth="0.5" />
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke={isDark ? '#20E3B2' : '#2563EB'} strokeWidth="0.5" />
         </pattern>
       </defs>
       <rect width="100%" height="100%" fill="url(#grid)" />
@@ -185,9 +185,9 @@ export default function LoginPage({ onLogin }) {
             style={{
               background: isDark
                 ? 'linear-gradient(135deg, rgba(32,227,178,0.15), rgba(77,171,247,0.1))'
-                : 'linear-gradient(135deg, rgba(99,102,241,0.12), rgba(14,165,233,0.08))',
-              border: `1.5px solid ${isDark ? 'rgba(32,227,178,0.25)' : 'rgba(99,102,241,0.2)'}`,
-              boxShadow: isDark ? '0 0 40px rgba(32,227,178,0.1)' : '0 0 40px rgba(99,102,241,0.08)',
+                : 'linear-gradient(135deg, rgba(37,99,235,0.12), rgba(34,197,94,0.08))',
+              border: `1.5px solid ${isDark ? 'rgba(32,227,178,0.25)' : 'rgba(37,99,235,0.18)'}`,
+              boxShadow: isDark ? '0 0 40px rgba(32,227,178,0.1)' : '0 8px 24px rgba(15,23,42,0.06)',
             }}
             whileHover={{ scale: 1.05, rotate: 3 }}
           >
@@ -216,9 +216,9 @@ export default function LoginPage({ onLogin }) {
                 key={tag}
                 className="px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider"
                 style={{
-                  background: isDark ? 'rgba(32,227,178,0.08)' : 'rgba(99,102,241,0.06)',
+                  background: isDark ? 'rgba(32,227,178,0.08)' : 'rgba(37,99,235,0.08)',
                   color: 'var(--brand-accent)',
-                  border: `1px solid ${isDark ? 'rgba(32,227,178,0.18)' : 'rgba(99,102,241,0.12)'}`,
+                  border: `1px solid ${isDark ? 'rgba(32,227,178,0.18)' : 'rgba(37,99,235,0.14)'}`,
                 }}
                 whileHover={{ scale: 1.05 }}
               >

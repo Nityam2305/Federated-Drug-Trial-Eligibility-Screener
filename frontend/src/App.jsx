@@ -109,8 +109,8 @@ function App() {
                     onClick={goBack}
                     className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200"
                     style={{
-                      background: isDark ? 'rgba(32,227,178,0.08)' : 'rgba(99,102,241,0.06)',
-                      border: `1px solid ${isDark ? 'rgba(32,227,178,0.15)' : 'rgba(99,102,241,0.1)'}`,
+                      background: isDark ? 'rgba(32,227,178,0.08)' : 'rgba(37,99,235,0.08)',
+                      border: `1px solid ${isDark ? 'rgba(32,227,178,0.15)' : 'rgba(37,99,235,0.14)'}`,
                       color: 'var(--brand-accent)',
                     }}
                     whileHover={{ scale: 1.08, x: -2 }}
@@ -125,7 +125,7 @@ function App() {
                   className="flex items-center gap-3.5 cursor-pointer bg-transparent border-none p-0 m-0 outline-none"
                   title="Go to Home"
                 >
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: isDark ? 'linear-gradient(135deg, rgba(32,227,178,0.14), rgba(77,171,247,0.1))' : 'linear-gradient(135deg, rgba(99,102,241,0.1), rgba(14,165,233,0.08))', border: `1px solid ${isDark ? 'rgba(32,227,178,0.2)' : 'rgba(99,102,241,0.15)'}` }}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: isDark ? 'linear-gradient(135deg, rgba(32,227,178,0.14), rgba(77,171,247,0.1))' : 'linear-gradient(135deg, rgba(37,99,235,0.12), rgba(34,197,94,0.08))', border: `1px solid ${isDark ? 'rgba(32,227,178,0.2)' : 'rgba(37,99,235,0.16)'}` }}>
                     <svg className="w-5 h-5" style={{ color: 'var(--brand-accent)' }} viewBox="0 0 24 24" fill="none" stroke="currentColor">
                       <path d="M12 2v20" strokeWidth="2" strokeLinecap="round" />
                       <path d="M5 7h14" strokeWidth="1.5" strokeLinecap="round" />
@@ -145,7 +145,7 @@ function App() {
               <div className="flex items-center gap-4">
                 <ThemeToggle />
                 <div className="hidden sm:flex items-center gap-3 pl-3" style={{ borderLeft: '1px solid var(--border-primary)' }}>
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold" style={{ background: isDark ? 'rgba(77,171,247,0.12)' : 'rgba(99,102,241,0.08)', color: 'var(--brand-primary)' }}>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold" style={{ background: isDark ? 'rgba(77,171,247,0.12)' : 'rgba(37,99,235,0.1)', color: 'var(--brand-primary)' }}>
                     {user?.username?.charAt(0)?.toUpperCase() || 'U'}
                   </div>
                   <div className="text-right">

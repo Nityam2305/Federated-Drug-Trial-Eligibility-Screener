@@ -6,7 +6,8 @@ import { Card, StatusBadge, Skeleton } from './ui';
 import { useThemeStore } from '../stores/themeStore';
 import { staggerContainer, staggerItem } from '../utils/motionVariants';
 
-const CHART_COLORS = ['#6366F1', '#0EA5E9', '#A855F7', '#10B981', '#F97316', '#F43F5E'];
+const LIGHT_CHART_COLORS = ['#6366F1', '#0EA5E9', '#A855F7', '#10B981', '#F97316', '#F43F5E'];
+const DARK_CHART_COLORS = ['#22D3EE', '#A3E635', '#F59E0B', '#60A5FA', '#38BDF8', '#FBBF24'];
 
 /* ── Premium KPI Card (Clickable) ── */
 const KPICard = memo(function KPICard({ icon, iconBg, iconColor, label, value, trend, accentColor, onClick, isActive, actionLabel }) {
@@ -68,22 +69,6 @@ const ChartTooltip = ({ active, payload, label }) => {
   );
 };
 
-/* ── Workflow Step ── */
-const WorkflowStep = memo(function WorkflowStep({ step, title, desc, icon, color }) {
-  return (
-    <motion.div className="relative" variants={staggerItem}>
-      <div className="flex flex-col items-center text-center">
-        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3" style={{ background: color + '10', color, border: `1.5px solid ${color}20` }}>
-          {icon}
-        </div>
-        <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black mb-2" style={{ background: color, color: '#fff' }}>{step}</div>
-        <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{title}</p>
-        <p className="text-xs mt-1.5 leading-relaxed max-w-[200px]" style={{ color: 'var(--text-secondary)' }}>{desc}</p>
-      </div>
-    </motion.div>
-  );
-});
-
 export default function Overview({ onNavigate, user }) {
   const [stats, setStats] = useState({ totalPatients: 0, globalTotalPatients: 0, totalTrials: 0, totalHospitals: 0, successRate: 0, uniqueDiseases: 0, drugTrials: 0 });
   const [loadingStats, setLoadingStats] = useState(true);
@@ -93,6 +78,7 @@ export default function Overview({ onNavigate, user }) {
   const [diseaseData, setDiseaseData] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const isDark = useThemeStore((s) => s.theme === 'dark');
+  const chartColors = isDark ? DARK_CHART_COLORS : LIGHT_CHART_COLORS;
   const hospitalName = user?.hospital_name || '';
 
   useEffect(() => {
@@ -158,19 +144,19 @@ export default function Overview({ onNavigate, user }) {
 
   /* ── Computed chart data ── */
   const distributionData = useMemo(() => [
-    { name: 'Patients', value: stats.totalPatients || 1, color: CHART_COLORS[0] },
-    { name: 'Active Trials', value: stats.totalTrials || 1, color: CHART_COLORS[1] },
-    { name: 'Hospitals', value: stats.totalHospitals || 1, color: CHART_COLORS[2] },
-    { name: 'Diseases', value: stats.uniqueDiseases || 1, color: CHART_COLORS[3] },
-  ], [stats]);
+    { name: 'Patients', value: stats.totalPatients || 1, color: chartColors[0] },
+    { name: 'Active Trials', value: stats.totalTrials || 1, color: chartColors[1] },
+    { name: 'Hospitals', value: stats.totalHospitals || 1, color: chartColors[2] },
+    { name: 'Diseases', value: stats.uniqueDiseases || 1, color: chartColors[3] },
+  ], [stats, chartColors]);
 
   const barData = useMemo(() => [
-    { name: 'Patients', value: stats.totalPatients, fill: CHART_COLORS[0] },
-    { name: 'Trials', value: stats.totalTrials, fill: CHART_COLORS[1] },
-    { name: 'Hospitals', value: stats.totalHospitals, fill: CHART_COLORS[2] },
-    { name: 'Diseases', value: stats.uniqueDiseases, fill: CHART_COLORS[3] },
-    { name: 'Drugs', value: stats.drugTrials, fill: CHART_COLORS[4] },
-  ], [stats]);
+    { name: 'Patients', value: stats.totalPatients, fill: chartColors[0] },
+    { name: 'Trials', value: stats.totalTrials, fill: chartColors[1] },
+    { name: 'Hospitals', value: stats.totalHospitals, fill: chartColors[2] },
+    { name: 'Diseases', value: stats.uniqueDiseases, fill: chartColors[3] },
+    { name: 'Drugs', value: stats.drugTrials, fill: chartColors[4] },
+  ], [stats, chartColors]);
 
   const trendData = useMemo(() => {
     const base = stats.totalPatients || 100;
@@ -263,13 +249,13 @@ export default function Overview({ onNavigate, user }) {
                         <motion.div key={h.name} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }}
                           className="rounded-2xl p-5 text-center" style={{ background: 'var(--bg-secondary)', border: `1.5px solid ${h.name === hospitalName ? 'var(--brand-accent)' : 'var(--border-primary)'}` }}>
                           <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
-                            style={{ background: CHART_COLORS[idx % CHART_COLORS.length] + '18', color: CHART_COLORS[idx % CHART_COLORS.length], border: `1.5px solid ${CHART_COLORS[idx % CHART_COLORS.length]}25` }}>
+                            style={{ background: chartColors[idx % chartColors.length] + '18', color: chartColors[idx % chartColors.length], border: `1.5px solid ${chartColors[idx % chartColors.length]}25` }}>
                             <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                           </div>
                           <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{h.name}</p>
                           {h.name === hospitalName && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'var(--brand-accent)', color: '#fff' }}>YOU</span>}
                           <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>{h.location}</p>
-                          <p className="text-lg font-black mt-2 tabular-nums" style={{ color: CHART_COLORS[idx % CHART_COLORS.length] }}>{(h.patient_count || 0).toLocaleString()}</p>
+                          <p className="text-lg font-black mt-2 tabular-nums" style={{ color: chartColors[idx % chartColors.length] }}>{(h.patient_count || 0).toLocaleString()}</p>
                           <p className="text-[10px] font-medium" style={{ color: 'var(--text-tertiary)' }}>patients</p>
                           <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold"
                             style={{ background: 'var(--kpi-green-bg-solid)', color: 'var(--kpi-green-text)', border: '1px solid var(--status-success-border)' }}>
@@ -366,20 +352,20 @@ export default function Overview({ onNavigate, user }) {
                 <AreaChart data={trendData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="gradPatients" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#6366F1" stopOpacity={0.2} />
-                      <stop offset="100%" stopColor="#6366F1" stopOpacity={0} />
+                      <stop offset="0%" stopColor={isDark ? '#22D3EE' : '#6366F1'} stopOpacity={isDark ? 0.12 : 0.2} />
+                      <stop offset="100%" stopColor={isDark ? '#22D3EE' : '#6366F1'} stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="gradScreenings" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#0EA5E9" stopOpacity={0.15} />
-                      <stop offset="100%" stopColor="#0EA5E9" stopOpacity={0} />
+                      <stop offset="0%" stopColor={isDark ? '#A3E635' : '#0EA5E9'} stopOpacity={isDark ? 0.1 : 0.15} />
+                      <stop offset="100%" stopColor={isDark ? '#A3E635' : '#0EA5E9'} stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" vertical={false} />
                   <XAxis dataKey="day" tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }} axisLine={false} tickLine={false} />
                   <Tooltip content={<ChartTooltip />} />
-                  <Area type="monotone" dataKey="patients" name="Patients" stroke="#6366F1" strokeWidth={2.5} fill="url(#gradPatients)" dot={false} />
-                  <Area type="monotone" dataKey="screenings" name="Screenings" stroke="#0EA5E9" strokeWidth={2} fill="url(#gradScreenings)" dot={false} />
+                  <Area type="monotone" dataKey="patients" name="Patients" stroke={isDark ? '#22D3EE' : '#6366F1'} strokeOpacity={isDark ? 0.85 : 1} strokeWidth={isDark ? 2.2 : 2.5} fill="url(#gradPatients)" dot={false} />
+                  <Area type="monotone" dataKey="screenings" name="Screenings" stroke={isDark ? '#A3E635' : '#0EA5E9'} strokeOpacity={isDark ? 0.82 : 1} strokeWidth={isDark ? 1.9 : 2} fill="url(#gradScreenings)" dot={false} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -411,7 +397,7 @@ export default function Overview({ onNavigate, user }) {
                     <XAxis dataKey="name" tick={{ fill: 'var(--text-tertiary)', fontSize: 9 }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }} axisLine={false} tickLine={false} />
                     <Tooltip content={<ChartTooltip />} />
-                    <Bar dataKey="value" name="Count" radius={[6, 6, 0, 0]}>
+                    <Bar dataKey="value" name="Count" radius={[10, 10, 0, 0]}>
                       {barData.map((entry, idx) => <Cell key={idx} fill={entry.fill} />)}
                     </Bar>
                   </BarChart>
@@ -466,20 +452,6 @@ export default function Overview({ onNavigate, user }) {
         </motion.div>
       )}
 
-      {/* How It Works */}
-      <motion.div variants={staggerItem}>
-        <Card>
-          <div className="section-header mb-8">
-            <div className="accent-bar" style={{ background: 'var(--brand-gradient-warm)' }} />
-            <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>How It Works</h3>
-          </div>
-          <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-8" variants={staggerContainer} initial="hidden" animate="visible">
-            <WorkflowStep step={1} title="Upload Data" desc="Upload patient records in the Patients tab. Training starts automatically." color="#6366F1" icon={<svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>} />
-            <WorkflowStep step={2} title="Browse Trials" desc="View drug trials with anonymized eligibility parameters from all hospitals." color="#0EA5E9" icon={<svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>} />
-            <WorkflowStep step={3} title="Check Eligibility" desc="Click any trial to see which of your patients are eligible — data stays private." color="#10B981" icon={<svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>} />
-          </motion.div>
-        </Card>
-      </motion.div>
     </motion.div>
   );
 }
