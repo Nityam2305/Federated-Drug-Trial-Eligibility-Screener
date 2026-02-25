@@ -41,7 +41,6 @@ export default function TrialsViewer({ user }) {
   const [createError, setCreateError] = useState('');
   const [creating, setCreating] = useState(false);
   const hospitalName = user?.hospital_name || '';
-  const isAdminUser = String(user?.role || '').toLowerCase() === 'admin';
   const isDark = useThemeStore((s) => s.theme === 'dark');
 
   useEffect(() => { loadTrials(); }, []);
@@ -71,7 +70,6 @@ export default function TrialsViewer({ user }) {
   }, [activeTab, eligPage, eligScope, debouncedHospitalSearch]);
   const handleTabChange = (tab) => { setActiveTab(tab); setEligScope('global'); setEligPage(1); setHospitalSearch(''); setDebouncedHospitalSearch(''); };
   const handleHospitalCardClick = (tab) => {
-    if (!isAdminUser) return;
     setActiveTab(tab);
     setEligScope('hospital');
     setEligPage(1);
@@ -188,9 +186,8 @@ export default function TrialsViewer({ user }) {
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={() => handleHospitalCardClick('eligible')}
-                    disabled={!isAdminUser}
-                    title={isAdminUser ? 'Show eligible patients from your hospital' : 'Available for admin accounts only'}
-                    className={`rounded-xl p-4 text-center transition-all duration-200 ${isAdminUser ? 'hover:scale-[1.02]' : 'opacity-70 cursor-not-allowed'}`}
+                    title="Show eligible patients from your hospital"
+                    className="rounded-xl p-4 text-center transition-all duration-200 hover:scale-[1.02]"
                     style={{ background: 'var(--status-success-bg)', border: `2px solid ${activeScope === 'hospital' && isElig ? 'var(--status-success)' : 'var(--status-success-border)'}` }}
                   >
                     <p className="text-3xl font-extrabold tabular-nums" style={{ color: 'var(--status-success)' }}>{hospitalEligible.toLocaleString()}</p>
@@ -198,20 +195,14 @@ export default function TrialsViewer({ user }) {
                   </button>
                   <button
                     onClick={() => handleHospitalCardClick('not_eligible')}
-                    disabled={!isAdminUser}
-                    title={isAdminUser ? 'Show not eligible patients from your hospital' : 'Available for admin accounts only'}
-                    className={`rounded-xl p-4 text-center transition-all duration-200 ${isAdminUser ? 'hover:scale-[1.02]' : 'opacity-70 cursor-not-allowed'}`}
+                    title="Show not eligible patients from your hospital"
+                    className="rounded-xl p-4 text-center transition-all duration-200 hover:scale-[1.02]"
                     style={{ background: 'var(--status-error-bg)', border: `2px solid ${activeScope === 'hospital' && !isElig ? 'var(--status-error)' : 'var(--status-error-border)'}` }}
                   >
                     <p className="text-3xl font-extrabold tabular-nums" style={{ color: 'var(--status-error)' }}>{hospitalNotEligible.toLocaleString()}</p>
                     <p className="text-[11px] font-semibold uppercase tracking-wider mt-1" style={{ color: 'var(--status-error)' }}>Not Eligible from Your Hospital</p>
                   </button>
                 </div>
-                {!isAdminUser && (
-                  <p className="text-[11px] mt-2 ml-1" style={{ color: 'var(--text-tertiary)' }}>
-                    Hospital-specific patient drill-down is available for admin accounts only.
-                  </p>
-                )}
               </div>
               <div className="mb-4">
                 <p className="text-xs font-bold uppercase tracking-wider mb-2 ml-1" style={{ color: 'var(--text-tertiary)' }}>Global Federated Pool — {(eligibleCount + notEligibleCount).toLocaleString()} patients across all hospitals</p>
@@ -305,7 +296,7 @@ export default function TrialsViewer({ user }) {
               <div className="text-xs font-semibold mb-2" style={{ color: 'var(--text-tertiary)' }}>
                 Viewing {isElig ? 'eligible' : 'not eligible'} patients from: <span style={{ color: 'var(--brand-primary)' }}>{scopeTitle}</span>
               </div>
-              {activeScope === 'hospital' && isAdminUser && (
+              {activeScope === 'hospital' && (
                 <div className="mb-3">
                   <input
                     type="text"
